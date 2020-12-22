@@ -14,11 +14,13 @@ export function createSession(req, res, next) {
     }
 
     req.logIn(user, (innerErr) => {
-      if (innerErr) {
-        next(innerErr);
-        return;
+      if (req.body.remember) {
+        req.session.cookie.originalMaxAge = 30 * 24 * 60 * 60 * 1000;
+      } else {
+        req.session.cookie.expires = false;
       }
-      res.json(userResponse(req.user));
+      if (innerErr) { return next(innerErr); }
+      return res.json(userResponse(req.user));
     });
   })(req, res, next);
 }
