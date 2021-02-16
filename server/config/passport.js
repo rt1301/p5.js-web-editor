@@ -276,25 +276,27 @@ passport.use(
 /**
  * Passport Remember me Strategy
  */
-passport.use(new RememberMeStrategy(
-  ((token, done) => {
-    Token.findOneAndRemove({ value: token })
-      .populate('user')
-      .exec((err, doc) => {
-        if (err) return done(err);
-        if (!doc) return done(null, false);
-        return done(null, doc.user);
+passport.use(
+  new RememberMeStrategy(
+    (token, done) => {
+      Token.findOneAndRemove({ value: token })
+        .populate('user')
+        .exec((err, doc) => {
+          if (err) return done(err);
+          if (!doc) return done(null, false);
+          return done(null, doc.user);
+        });
+    },
+    (user, done) => {
+      const value = generateToken(64);
+      const token = new Token({
+        value,
+        user: user._id
       });
-  }),
-  ((user, done) => {
-    const value = generateToken(64);
-    const token = new Token({
-      value,
-      user: user._id
-    });
-    token.save((err) => {
-      if (err) return done(err);
-      return done(null, value);
-    });
-  })
-));
+      token.save((err) => {
+        if (err) return done(err);
+        return done(null, value);
+      });
+    }
+  )
+);

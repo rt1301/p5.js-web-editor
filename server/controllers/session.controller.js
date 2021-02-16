@@ -15,11 +15,8 @@ export function createSession(req, res, next) {
       return;
     }
 
-    req.logIn(user, async (innerErr) => { // eslint-disable-line consistent-return
-      if (!req.body.remember) {
-        if (innerErr) { return next(innerErr); }
-        return res.json(userResponse(req.user));
-      }
+    req.logIn(user, async (innerErr) => {
+      // eslint-disable-line consistent-return
       if (req.body.remember) {
         const value = generateToken(64);
         const maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
@@ -28,12 +25,20 @@ export function createSession(req, res, next) {
           user: user._id
         };
         await Token.create(token, (error, doc) => {
-          if (err) { return next(error); }
+          if (err) {
+            return next(error);
+          }
           res.cookie('remember_me', value, { path: '/', maxAge });
-          if (innerErr) { return next(innerErr); }
+          if (innerErr) {
+            return next(innerErr);
+          }
           return res.json(userResponse(req.user));
         });
       }
+      if (innerErr) {
+        return next(innerErr);
+      }
+      return res.json(userResponse(req.user));
     });
   })(req, res, next);
 }
